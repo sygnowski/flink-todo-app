@@ -21,7 +21,7 @@ services:
               bootstrap.servers: kafka:9093
           - name: txlog
             type: sink
-            topic: ActionTxLog
+            topic: TodoTxLog
             properties:
               bootstrap.servers: kafka:9093
         checkpoints:
@@ -35,6 +35,7 @@ services:
 
       - |
         FLINK_PROPERTIES=
+        classloader.resolve-order: parent-first
         jobmanager.rpc.address: flinkjobmanger
         state.backend: rocksdb
         state.checkpoints.dir: file:/opt/flink/appdata/checkpointing
@@ -56,6 +57,7 @@ services:
     environment:
       - |
         FLINK_PROPERTIES=
+        classloader.resolve-order: parent-first
         jobmanager.rpc.address: flinkjobmanger
         state.backend: rocksdb
         state.checkpoints.dir: file:/opt/flink/appdata/checkpointing

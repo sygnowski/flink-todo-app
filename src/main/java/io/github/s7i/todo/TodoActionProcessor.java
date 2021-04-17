@@ -1,10 +1,7 @@
 package io.github.s7i.todo;
 
-import static java.util.Objects.nonNull;
-
-import io.github.s7i.todo.domain.Todo;
 import io.github.s7i.todo.domain.TodoAction;
-import java.util.List;
+import io.github.s7i.todo.domain.TxLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
@@ -19,23 +16,21 @@ public class TodoActionProcessor extends KeyedProcessFunction<String, String, St
     @Override
     public void processElement(String value, Context context, Collector<String> collector) throws Exception {
         log.info("action: {}", value);
-        Todo todo;
+        TxLog txLog;
         var action = TodoAction.from(value);
 
         var state = getRuntimeContext().getState(TODO_STATE);
         if (state.value() != null) {
-            todo = Todo.from(state.value());
-            todo.update(action);
-
+            txLog = TxLog.from(state.value());
         } else {
-            todo = new Todo();
-            todo.setId(context.getCurrentKey());
-            if (nonNull(action.getAdd())) {
-                todo.setItems(List.of(action.getAdd()));
-            }
+            txLog = new TxLog(context.getCurrentKey());
+
         }
-        var jsonString = todo.toJsonString();
-        state.update(jsonString);
+        txLog.update(action);
+        var jsonString = txLog.getTodo().toJsonString();
+        var txLogJson = txLog.toJsonString();
+        state.update(txLogJson);
+        context.output(TodoJob.TAG_TX_LOG, txLogJson);
         collector.collect(jsonString);
     }
 }

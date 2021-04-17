@@ -1,11 +1,14 @@
 package io.github.s7i.todo.domain;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 @Data
+@NoArgsConstructor
 public class Todo {
 
     @SneakyThrows
@@ -15,6 +18,11 @@ public class Todo {
 
     String id;
     List<String> items;
+
+    public Todo(String key) {
+        id = key;
+        items = new ArrayList<>();
+    }
 
     public void update(TodoAction action) {
         if (action.hasAdd()) {
