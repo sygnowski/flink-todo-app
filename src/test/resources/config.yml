@@ -1,0 +1,17 @@
+kafka-io:
+  - name: action
+    type: source
+    topic: TodoAction
+    properties:
+      bootstrap.servers: localhost:9092
+      group.id: todo-action
+  - name: reaction
+    type: sink
+    topic: TodoReaction
+    properties:
+      bootstrap.servers: localhost:9092
+  - name: txlog
+    type: sink
+    topic: ActionTxLog
+    properties:
+      bootstrap.servers: localhost:9092

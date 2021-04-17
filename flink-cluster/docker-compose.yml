@@ -1,0 +1,62 @@
+version: "3"
+services:
+  jobmanager:
+    image: apache/flink:1.12-scala_2.11-java11
+    command: jobmanager
+    hostname: flinkjobmanger
+    environment:
+      - |
+        CONFIG=
+        kafka-io:
+          - name: action
+            type: source
+            topic: TodoAction
+            properties:
+              bootstrap.servers: kafka:9093
+              group.id: todo-action
+          - name: reaction
+            type: sink
+            topic: TodoReaction
+            properties:
+              bootstrap.servers: kafka:9093
+          - name: txlog
+            type: sink
+            topic: ActionTxLog
+            properties:
+              bootstrap.servers: kafka:9093
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flinkjobmanger
+        state.backend: rocksdb
+        state.checkpoints.dir: file:/opt/flink/appdata/checkpointing
+        state.savepoints.dir: file:/opt/flink/appdata/savepointing
+        state.backend.incremental: true
+        state.backend.rocksdb.timer-service.factory: ROCKSDB
+        state.backend.rocksdb.localdir: /opt/flink/appdata/state-rocksdb
+        web.tmpdir: /opt/flink/submit-job
+    ports:
+      - "8181:8081"
+    volumes:
+      - "../target/todo-app.jar:/opt/flink/lib/todo-app.jar"
+    networks:
+      - "eulisa"
+  taskmanager:
+    image: apache/flink:1.12-scala_2.11-java11
+    command: taskmanager
+    scale: 1
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flinkjobmanger
+        state.backend: rocksdb
+        state.checkpoints.dir: file:/opt/flink/appdata/checkpointing
+        state.savepoints.dir: file:/opt/flink/appdata/savepointing
+        state.backend.incremental: true
+        state.backend.rocksdb.timer-service.factory: ROCKSDB
+        state.backend.rocksdb.localdir: /opt/flink/appdata/state-rocksdb
+    networks:
+      - "eulisa"
+networks:
+  eulisa:
+    external:
+      name: eulisa
