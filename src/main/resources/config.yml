@@ -15,3 +15,11 @@ kafka-io:
     topic: ActionTxLog
     properties:
       bootstrap.servers: localhost:9092
+checkpoints:
+  enabled: true
+  interval: 10000
+  mode: AT_LEAST_ONCE
+  timeout: 900000
+  pause: 1000
+  concurrent: 1
+  externalization: true

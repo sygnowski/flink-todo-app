@@ -1,5 +1,7 @@
 package io.github.s7i.todo.conf;
 
+import static java.util.Objects.nonNull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -35,7 +37,24 @@ public class Configuration implements FlinkConfigAdapter {
         return from(content);
     }
 
+    @Data
+    public static class Checkpoints {
+
+        boolean enabled;
+        String mode;
+        Long interval;
+        Long timeout;
+        Long pause;
+        Integer concurrent;
+        boolean externalization;
+    }
+
     @JsonProperty("kafka-io")
     private List<KafkaTopic> kafkaTopicList;
+    private Checkpoints checkpoints;
+
+    public boolean hasCheckpointing() {
+        return nonNull(checkpoints);
+    }
 
 }

@@ -24,6 +24,15 @@ services:
             topic: ActionTxLog
             properties:
               bootstrap.servers: kafka:9093
+        checkpoints:
+          enabled: true
+          interval: 10000
+          mode: AT_LEAST_ONCE
+          timeout: 900000
+          pause: 1000
+          concurrent: 1
+          externalization: true
+
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flinkjobmanger
