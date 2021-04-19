@@ -1,17 +1,11 @@
 package io.github.s7i.todo.conf;
 
-import io.github.s7i.todo.domain.TxLog;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
-import javax.annotation.Nullable;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer.Semantic;
-import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
-import org.apache.flink.util.FlinkRuntimeException;
-import org.apache.kafka.clients.producer.ProducerRecord;
 
 public interface FlinkConfigAdapter {
 
@@ -28,7 +22,7 @@ public interface FlinkConfigAdapter {
         return new FlinkKafkaConsumer<>(src.getTopic(), new SimpleStringSchema(), pros);
     }
 
-    default FlinkKafkaProducer<String> sink() {
+    default FlinkKafkaProducer<String> sink(String semantic) {
         var sink = getKafkaTopicList().stream()
               .filter(KafkaTopic::isSink)
               .filter(s -> s.getName().equals("reaction"))
@@ -37,10 +31,13 @@ public interface FlinkConfigAdapter {
         var topic = sink.getTopic();
         var props = new Properties();
         props.putAll(sink.getProperties());
-        return new FlinkKafkaProducer<>(topic, new SimpleStringSchema(), props);
+        return new FlinkKafkaProducer<>(
+              topic,
+              new StringSerializer(topic),
+              props, Semantic.valueOf(semantic));
     }
 
-    default FlinkKafkaProducer<String> txLog() {
+    default FlinkKafkaProducer<String> txLog(String semantic) {
         var sink = getKafkaTopicList().stream()
               .filter(KafkaTopic::isSink)
               .filter(s -> s.getName().equals("txlog"))
@@ -52,7 +49,7 @@ public interface FlinkConfigAdapter {
         return new FlinkKafkaProducer<>(
               topic,
               new TxLogSerializer(topic),
-              props, Semantic.AT_LEAST_ONCE
+              props, Semantic.valueOf(semantic)
         );
     }
 
