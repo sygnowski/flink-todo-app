@@ -17,18 +17,20 @@ services:
           - name: reaction
             type: sink
             topic: TodoReaction
+            semantic: AT_LEAST_ONCE
             properties:
               bootstrap.servers: kafka:9093
           - name: txlog
             type: sink
             topic: TodoTxLog
+            semantic: EXACTLY_ONCE
             properties:
               bootstrap.servers: kafka:9093
         checkpoints:
           enabled: true
           interval: 10000
-          mode: AT_LEAST_ONCE
-          #mode: EXACTLY_ONCE
+          #mode: AT_LEAST_ONCE
+          mode: EXACTLY_ONCE
           timeout: 900000
           pause: 1000
           concurrent: 1
@@ -47,8 +49,6 @@ services:
         web.tmpdir: /opt/flink/submit-job
     ports:
       - "8181:8081"
-    volumes:
-      - "../target/todo-app.jar:/opt/flink/lib/todo-app.jar"
     networks:
       - "eulisa"
   taskmanager:

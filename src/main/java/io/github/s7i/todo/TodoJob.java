@@ -5,6 +5,8 @@ import static java.util.Objects.requireNonNull;
 
 import io.github.s7i.todo.conf.Configuration;
 import io.github.s7i.todo.conf.Configuration.Checkpoints;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
@@ -18,8 +20,8 @@ import org.apache.flink.util.OutputTag;
 public class TodoJob {
 
     public static final OutputTag<String> TAG_TX_LOG = new OutputTag<>("TXLOG", BasicTypeInfo.STRING_TYPE_INFO);
-    public static final String AT_LEAST_ONCE = "AT_LEAST_ONCE";
-    public static final String PARAM_SEMANTIC = "semantic";
+    public static final String PARAM_CONFIG = "config";
+    public static final String ENV_CONFIG = "CONFIG";
 
     @RequiredArgsConstructor
     public static class JobCreator {
@@ -27,13 +29,9 @@ public class TodoJob {
         final StreamExecutionEnvironment env;
         ParameterTool params;
         Configuration cfg;
-        String semantic = AT_LEAST_ONCE;
 
         void create(String[] args) throws Exception {
             params = ParameterTool.fromArgs(args);
-            if (params.has(PARAM_SEMANTIC)) {
-                semantic = params.get(PARAM_SEMANTIC);
-            }
             cfg = getConfiguration();
             requireNonNull(params);
             requireNonNull(cfg);
@@ -52,11 +50,11 @@ public class TodoJob {
                   .uid("todo-processor");
 
             stream.getSideOutput(TAG_TX_LOG)
-                  .addSink(cfg.txLog(semantic))
+                  .addSink(cfg.txLog())
                   .name("TxLog")
                   .uid("txlog-sink");
 
-            stream.addSink(cfg.sink(semantic))
+            stream.addSink(cfg.sink())
                   .name("Todo Reactions")
                   .uid("todo-sink");
 
@@ -64,14 +62,19 @@ public class TodoJob {
                 enableCheckpointing(cfg.getCheckpoints());
             }
             env.execute("ToDo App Job");
-            log.info("Flink Producer Semantic: {}", semantic);
         }
 
-        Configuration getConfiguration() {
+        Configuration getConfiguration() throws Exception {
             Configuration cfg;
-            if (nonNull(System.getenv("CONFIG"))) {
-                cfg = Configuration.from(System.getenv("CONFIG"));
+            if (params.has(PARAM_CONFIG)) {
+                var config = params.get(PARAM_CONFIG);
+                log.info("Reading config form file: {}", config);
+                cfg = Configuration.from(Files.readString(Paths.get(config)));
+            } else if (nonNull(System.getenv(ENV_CONFIG))) {
+                log.info("Reading config form env");
+                cfg = Configuration.from(System.getenv(ENV_CONFIG));
             } else {
+                log.info("Reading config resources");
                 cfg = Configuration.fromResources();
             }
             return cfg;

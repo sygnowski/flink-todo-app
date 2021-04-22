@@ -6,6 +6,37 @@ It's providing functionality that covers various aspects of working with the Fli
  - Flink's state
  - Checkpointing
 
+## Config
+
+```yaml
+kafka-io:
+  - name: action
+    type: source
+    topic: TodoAction
+    properties:
+      bootstrap.servers: localhost:9092
+      group.id: todo-action
+  - name: reaction
+    type: sink
+    topic: TodoReaction
+    properties:
+      bootstrap.servers: localhost:9092
+  - name: txlog
+    type: sink
+    topic: ActionTxLog
+    semantic: EXACTLY_ONCE
+    properties:
+      bootstrap.servers: localhost:9092
+checkpoints:
+  enabled: true
+  interval: 10000
+  mode: AT_LEAST_ONCE
+  timeout: 900000
+  pause: 1000
+  concurrent: 1
+  externalization: true
+```
+
 ## Domain
 
 ### The Todo Actions 
