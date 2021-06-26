@@ -5,8 +5,11 @@ import static java.util.Objects.requireNonNull;
 
 import io.github.s7i.todo.conf.Configuration;
 import io.github.s7i.todo.conf.Configuration.Checkpoints;
+import io.github.s7i.todo.conf.FlinkConfigAdapter;
+import io.github.s7i.todo.conf.KafkaTopic;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
@@ -24,7 +27,7 @@ public class TodoJob {
     public static final String ENV_CONFIG = "CONFIG";
 
     @RequiredArgsConstructor
-    public static class JobCreator {
+    public static class JobCreator implements FlinkConfigAdapter {
 
         final StreamExecutionEnvironment env;
         ParameterTool params;
@@ -39,8 +42,13 @@ public class TodoJob {
             buildStream();
         }
 
+        @Override
+        public List<KafkaTopic> getKafkaTopicList() {
+            return cfg.getKafkaTopicList();
+        }
+
         void buildStream() throws Exception {
-            var stream = env.addSource(cfg.actionSource())
+            var stream = env.addSource(actionSource())
                   .filter(new TodoActionFilter())
                   .uid("todo-src")
                   .name("Todo Actions")
@@ -50,11 +58,11 @@ public class TodoJob {
                   .uid("todo-processor");
 
             stream.getSideOutput(TAG_TX_LOG)
-                  .addSink(cfg.txLog())
+                  .addSink(txLog())
                   .name("TxLog")
                   .uid("txlog-sink");
 
-            stream.addSink(cfg.sink())
+            stream.addSink(sink())
                   .name("Todo Reactions")
                   .uid("todo-sink");
 

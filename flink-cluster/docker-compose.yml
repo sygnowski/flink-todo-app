@@ -1,7 +1,7 @@
 version: "3"
 services:
   jobmanager:
-    image: apache/flink:1.12-scala_2.11-java11
+    image: apache/flink:1.13.0-scala_2.11-java11
     command: jobmanager
     hostname: flinkjobmanger
     environment:
@@ -47,12 +47,13 @@ services:
         state.backend.rocksdb.timer-service.factory: ROCKSDB
         state.backend.rocksdb.localdir: /opt/flink/appdata/state-rocksdb
         web.tmpdir: /opt/flink/submit-job
+        rest.flamegraph.enabled: true
     ports:
       - "8181:8081"
     networks:
       - "eulisa"
   taskmanager:
-    image: apache/flink:1.12-scala_2.11-java11
+    image: apache/flink:1.13.0-scala_2.11-java11
     command: taskmanager
     scale: 1
     environment:
@@ -66,6 +67,7 @@ services:
         state.backend.incremental: true
         state.backend.rocksdb.timer-service.factory: ROCKSDB
         state.backend.rocksdb.localdir: /opt/flink/appdata/state-rocksdb
+        rest.flamegraph.enabled: true
     networks:
       - "eulisa"
 networks:

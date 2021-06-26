@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
-public class Configuration implements FlinkConfigAdapter {
+public class Configuration {
 
     @SneakyThrows
     public static Configuration from(String content) {
