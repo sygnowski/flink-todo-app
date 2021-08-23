@@ -41,17 +41,19 @@ services:
         classloader.resolve-order: parent-first
         jobmanager.rpc.address: flinkjobmanger
         state.backend: rocksdb
-        state.checkpoints.dir: file:/opt/flink/appdata/checkpointing
-        state.savepoints.dir: file:/opt/flink/appdata/savepointing
+        state.checkpoints.dir: file:/opt/flink/data/todo-app/checkpointing
+        state.savepoints.dir: file:/opt/flink/data/todo-app/savepointing
         state.backend.incremental: true
         state.backend.rocksdb.timer-service.factory: ROCKSDB
-        state.backend.rocksdb.localdir: /opt/flink/appdata/state-rocksdb
+        state.backend.rocksdb.localdir: /opt/flink/data/todo-app/state-rocksdb
         web.tmpdir: /opt/flink/submit-job
         rest.flamegraph.enabled: true
     ports:
       - "8181:8081"
+    volumes:
+      - flink:/opt/flink/data
     networks:
-      - "eulisa"
+      - "dev"
   taskmanager:
     image: apache/flink:1.13.0-scala_2.11-java11
     command: taskmanager
@@ -62,15 +64,22 @@ services:
         classloader.resolve-order: parent-first
         jobmanager.rpc.address: flinkjobmanger
         state.backend: rocksdb
-        state.checkpoints.dir: file:/opt/flink/appdata/checkpointing
-        state.savepoints.dir: file:/opt/flink/appdata/savepointing
+        state.checkpoints.dir: file:/opt/flink/data/todo-app/checkpointing
+        state.savepoints.dir: file:/opt/flink/data/todo-app/savepointing
         state.backend.incremental: true
         state.backend.rocksdb.timer-service.factory: ROCKSDB
-        state.backend.rocksdb.localdir: /opt/flink/appdata/state-rocksdb
+        state.backend.rocksdb.localdir: /opt/flink/data/todo-app/state-rocksdb
         rest.flamegraph.enabled: true
+    volumes:
+      - "flink:/opt/flink/data"
     networks:
-      - "eulisa"
+      - "dev"
+
+volumes:
+  flink:
+    external: true
+
 networks:
-  eulisa:
+  dev:
     external:
-      name: eulisa
+      name: ${TODO_APP_NETWORK:-todo-app}
