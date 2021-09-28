@@ -13,7 +13,8 @@ public class TodoActionFilter implements FilterFunction<String> {
             TodoAction.from(s);
             return true;
         } catch (Exception e) {
-            log.warn("invalid todo action {}", s);
+            log.warn("invalid todo action {}, why {}", s, e.getMessage());
+
         }
         return false;
     }
