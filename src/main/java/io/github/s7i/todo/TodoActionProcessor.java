@@ -1,5 +1,7 @@
 package io.github.s7i.todo;
 
+import static java.util.Objects.nonNull;
+
 import io.github.s7i.todo.domain.Status;
 import io.github.s7i.todo.domain.TodoAction;
 import io.github.s7i.todo.domain.TxLog;
@@ -28,17 +30,26 @@ public class TodoActionProcessor extends KeyedProcessFunction<String, String, St
             return;
         }
 
-        var state = getRuntimeContext().getState(State.TODO_STATE);
-        TxLog txLog = txLog(context, state);
-        txLog.update(action);
+        if (nonNull(action.getAdd()) || nonNull(action.getRemove())) {
 
-        var todoJson = txLog.getTodo().toJsonString();
+            var state = getRuntimeContext().getState(State.TODO_STATE);
+            TxLog txLog = txLog(context, state);
+            txLog.update(action);
 
-        var txLogJson = txLog.toJsonString();
-        state.update(txLogJson);
-        context.output(TodoJob.TAG_TX_LOG, txLogJson);
+            var todoJson = txLog.getTodo().toJsonString();
 
-        collector.collect(todoJson);
+            var txLogJson = txLog.toJsonString();
+            state.update(txLogJson);
+            context.output(TodoJob.TAG_TX_LOG, txLogJson);
+
+            collector.collect(todoJson);
+        } else if (nonNull(action.getSpy())) {
+            collector.collect(Status.builder()
+                  .status("spy")
+                  .currentKey(context.getCurrentKey())
+                  .build()
+                  .toJsonString());
+        }
     }
 
     private TxLog txLog(Context context, ValueState<String> state) throws IOException {

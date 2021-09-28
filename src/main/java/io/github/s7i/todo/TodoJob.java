@@ -52,13 +52,16 @@ public class TodoJob {
                   .filter(new TodoActionFilter())
                   .uid("todo-src")
                   .name("Todo Actions")
+                  .keyBy(new StateSpyKeySelector())
+                  .process(new StateSpyProcessor())
+                  .name("State Spy Processor")
                   .keyBy(new UserKeySelector())
                   .process(new UserAuthProcessor())
                   .name("Auth Processor")
                   .uid("auth-processor")
                   .keyBy(new TodoKeySelector())
                   .process(new TodoActionProcessor())
-                  .setParallelism(1)
+                  .setParallelism(params.getInt("scale",1))
                   .name("Todo Processor")
                   .uid("todo-processor");
 

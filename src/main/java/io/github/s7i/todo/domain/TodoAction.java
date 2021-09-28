@@ -23,6 +23,7 @@ public class TodoAction {
     String remove;
     User user;
     List<String> flags = new ArrayList<>();
+    StateSpy spy;
 
     public boolean hasAdd() {
         return nonNull(add);

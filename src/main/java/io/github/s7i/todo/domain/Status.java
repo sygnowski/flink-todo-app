@@ -13,6 +13,8 @@ public class Status {
 
     @Singular
     List<String> errors;
+    String status;
+    String currentKey;
 
     @SneakyThrows
     public String toJsonString() {
