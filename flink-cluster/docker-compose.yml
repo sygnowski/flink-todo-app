@@ -1,7 +1,7 @@
 version: "3"
 services:
   jobmanager:
-    image: apache/flink:1.13.0-scala_2.11-java11
+    image: apache/flink:1.13.2-scala_2.11-java11
     command: jobmanager
     hostname: flinkjobmanger
     environment:
@@ -23,14 +23,13 @@ services:
           - name: txlog
             type: sink
             topic: TodoTxLog
-            semantic: EXACTLY_ONCE
+            semantic: AT_LEAST_ONCE
             properties:
               bootstrap.servers: kafka:9093
         checkpoints:
           enabled: true
           interval: 10000
-          #mode: AT_LEAST_ONCE
-          mode: EXACTLY_ONCE
+          mode: AT_LEAST_ONCE
           timeout: 900000
           pause: 1000
           concurrent: 1
@@ -55,7 +54,7 @@ services:
     networks:
       - "dev"
   taskmanager:
-    image: apache/flink:1.13.0-scala_2.11-java11
+    image: apache/flink:1.13.2-scala_2.11-java11
     command: taskmanager
     scale: 1
     environment:
@@ -70,6 +69,7 @@ services:
         state.backend.rocksdb.timer-service.factory: ROCKSDB
         state.backend.rocksdb.localdir: /opt/flink/data/todo-app/state-rocksdb
         rest.flamegraph.enabled: true
+        taskmanager.numberOfTaskSlots: 20
     volumes:
       - "flink:/opt/flink/data"
     networks:
