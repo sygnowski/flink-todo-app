@@ -1,7 +1,7 @@
 version: "3"
 services:
   jobmanager:
-    image: apache/flink:1.13.0-scala_2.11-java11
+    image: ${FLINK_IMAGE}
     command: jobmanager
     hostname: flinkjobmanger
     environment:
@@ -23,7 +23,7 @@ services:
           - name: txlog
             type: sink
             topic: TodoTxLog
-            semantic: EXACTLY_ONCE
+            semantic: AT_LEAST_ONCE
             properties:
               bootstrap.servers: kafka:9093
         checkpoints:
@@ -53,9 +53,9 @@ services:
     volumes:
       - flink:/opt/flink/data
     networks:
-      - "dev"
+      - dev
   taskmanager:
-    image: apache/flink:1.13.0-scala_2.11-java11
+    image: ${FLINK_IMAGE}
     command: taskmanager
     scale: 1
     environment:
@@ -73,7 +73,7 @@ services:
     volumes:
       - "flink:/opt/flink/data"
     networks:
-      - "dev"
+      - dev
 
 volumes:
   flink:
