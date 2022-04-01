@@ -11,6 +11,7 @@
 
     <properties>
         <java.version>11</java.version>
+        <scala.version>2.12</scala.version>
         <flink.version>1.14.4</flink.version>
         <jackson.version>2.13.2</jackson.version>
         <lombok.version>1.18.22</lombok.version>
@@ -21,13 +22,13 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_2.11</artifactId>
+            <artifactId>flink-streaming-java_${scala.version}</artifactId>
             <version>${flink.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-kafka_2.11</artifactId>
+            <artifactId>flink-connector-kafka_${scala.version}</artifactId>
             <version>${flink.version}</version>
         </dependency>
         <dependency>
@@ -50,7 +51,7 @@
         <!-- FLINK-->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-test-utils_2.11</artifactId>
+            <artifactId>flink-test-utils_${scala.version}</artifactId>
             <version>${flink.version}</version>
             <scope>test</scope>
         </dependency>
@@ -62,7 +63,7 @@
 <!--        </dependency>-->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_2.11</artifactId>
+            <artifactId>flink-streaming-java_${scala.version}</artifactId>
             <version>${flink.version}</version>
             <scope>test</scope>
             <classifier>tests</classifier>
