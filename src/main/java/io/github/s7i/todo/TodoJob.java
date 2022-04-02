@@ -1,23 +1,25 @@
 package io.github.s7i.todo;
 
-import static java.util.Objects.nonNull;
-import static java.util.Objects.requireNonNull;
-
 import io.github.s7i.todo.conf.Configuration;
 import io.github.s7i.todo.conf.Configuration.Checkpoints;
 import io.github.s7i.todo.conf.FlinkConfigAdapter;
 import io.github.s7i.todo.conf.KafkaTopic;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.OutputTag;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
+import static java.util.Objects.nonNull;
+import static java.util.Objects.requireNonNull;
 
 @Slf4j
 public class TodoJob {
@@ -48,21 +50,22 @@ public class TodoJob {
         }
 
         void buildStream() throws Exception {
-            var stream = env.addSource(actionSource())
+            var stream = env.fromSource(actionSource(), WatermarkStrategy.noWatermarks(), "Action Source")
                   .filter(new TodoActionFilter())
                   .uid("todo-src")
                   .name("Todo Actions")
                   .keyBy(new TodoKeySelector())
                   .process(new TodoActionProcessor())
+                  .setParallelism(params.getInt("scale",2))
                   .name("Todo Processor")
                   .uid("todo-processor");
 
             stream.getSideOutput(TAG_TX_LOG)
-                  .addSink(txLog())
+                  .sinkTo(txLog())
                   .name("TxLog")
                   .uid("txlog-sink");
 
-            stream.addSink(sink())
+            stream.sinkTo(sink())
                   .name("Todo Reactions")
                   .uid("todo-sink");
 
