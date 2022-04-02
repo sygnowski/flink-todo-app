@@ -76,5 +76,14 @@ kafka-console-producer.sh --topic TodoAction --bootstrap-server localhost:9092
 
 How to create a compacted topic:
 ```shell
-kafka-topics.sh --create --zookeeper zookeeper:2181 --topic TodoTxLog --replication-factor 1 --partitions 1 --config "cleanup.policy=compact" --config "delete.retention.ms=100" --config "segment.ms=100" --config "min.cleanable.dirty.ratio=0.01"
+kafka-topics.sh --create \
+--zookeeper zookeeper:2181 \
+--topic TodoTxLog \
+--replication-factor 1 \
+--partitions 1 \
+--config "cleanup.policy=compact" \
+--config "delete.retention.ms=100" \
+--config "segment.ms=100" \
+--config "min.cleanable.dirty.ratio=0.01"
+
 ```
