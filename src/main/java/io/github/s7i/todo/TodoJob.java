@@ -3,6 +3,7 @@ package io.github.s7i.todo;
 import io.github.s7i.todo.conf.Configuration;
 import io.github.s7i.todo.conf.Configuration.Checkpoints;
 import io.github.s7i.todo.conf.FlinkConfigAdapter;
+import io.github.s7i.todo.conf.GitProps;
 import io.github.s7i.todo.conf.KafkaTopic;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +73,7 @@ public class TodoJob {
             if (cfg.hasCheckpointing()) {
                 enableCheckpointing(cfg.getCheckpoints());
             }
-            env.execute("ToDo App Job");
+            env.execute("ToDo App Job" + " (" + new GitProps() + ")");
         }
 
         Configuration getConfiguration() throws Exception {
