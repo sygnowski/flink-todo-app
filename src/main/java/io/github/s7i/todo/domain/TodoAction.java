@@ -4,6 +4,7 @@ import static java.util.Objects.nonNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Optional;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -18,9 +19,14 @@ public class TodoAction {
     }
 
     String id;
+    String name;
     String add;
     String remove;
     List<Meta> meta;
+
+    public Optional<List<Meta>> getMeta() {
+        return Optional.ofNullable(meta);
+    }
 
     public boolean hasAdd() {
         return nonNull(add);
