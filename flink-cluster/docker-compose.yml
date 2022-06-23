@@ -43,6 +43,7 @@ services:
         state.backend: rocksdb
         state.checkpoints.dir: file:/opt/flink/data/todo-app/checkpointing
         state.savepoints.dir: file:/opt/flink/data/todo-app/savepointing
+        state.checkpoint-storage: filesystem
         state.backend.incremental: true
         state.backend.rocksdb.timer-service.factory: ROCKSDB
         state.backend.rocksdb.localdir: /opt/flink/data/todo-app/state-rocksdb
@@ -66,10 +67,12 @@ services:
         state.backend: rocksdb
         state.checkpoints.dir: file:/opt/flink/data/todo-app/checkpointing
         state.savepoints.dir: file:/opt/flink/data/todo-app/savepointing
+        state.checkpoint-storage: filesystem
         state.backend.incremental: true
         state.backend.rocksdb.timer-service.factory: ROCKSDB
         state.backend.rocksdb.localdir: /opt/flink/data/todo-app/state-rocksdb
         rest.flamegraph.enabled: true
+        taskmanager.numberOfTaskSlots: 5
     volumes:
       - "flink:/opt/flink/data"
     networks:
