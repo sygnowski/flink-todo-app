@@ -3,10 +3,13 @@ package io.github.s7i.todo.domain;
 import static java.util.Objects.nonNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 @Data
+@NoArgsConstructor
 public class TodoAction {
 
     @SneakyThrows
@@ -17,6 +20,7 @@ public class TodoAction {
     String id;
     String add;
     String remove;
+    List<Meta> meta;
 
     public boolean hasAdd() {
         return nonNull(add);

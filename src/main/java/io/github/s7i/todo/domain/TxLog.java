@@ -29,6 +29,7 @@ public class TxLog {
 
     Todo todo;
     List<Change> changeList;
+    List<Meta> meta;
 
     public TxLog(String key) {
         todo = new Todo(key);
