@@ -13,8 +13,8 @@
         <java.version>11</java.version>
         <scala.version>2.12</scala.version>
         <flink.version>1.14.4</flink.version>
-        <jackson.version>2.13.2</jackson.version>
-        <lombok.version>1.18.22</lombok.version>
+        <jackson.version>2.13.3</jackson.version>
+        <lombok.version>1.18.24</lombok.version>
         <groovy.version>3.0.10</groovy.version>
         <jar.name>todo-app</jar.name>
     </properties>
