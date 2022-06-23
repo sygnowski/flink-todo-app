@@ -26,4 +26,10 @@ public class TodoAction {
         return nonNull(remove);
     }
 
+    public Kind getKind() {
+        return hasAdd() || hasRemove()
+              ? Kind.COMMAND
+              : Kind.QUERY;
+    }
+
 }
