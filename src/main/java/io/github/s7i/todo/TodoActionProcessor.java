@@ -16,21 +16,32 @@ public class TodoActionProcessor extends KeyedProcessFunction<String, String, St
     @Override
     public void processElement(String value, Context context, Collector<String> collector) throws Exception {
         log.info("action: {}", value);
-        TxLog txLog;
-        var action = TodoAction.from(value);
+
+        final TxLog txLog;
+        final var action = TodoAction.from(value);
 
         var state = getRuntimeContext().getState(TODO_STATE);
         if (state.value() != null) {
             txLog = TxLog.from(state.value());
         } else {
             txLog = new TxLog(context.getCurrentKey());
-
         }
-        txLog.update(action);
-        var jsonString = txLog.getTodo().toJsonString();
-        var txLogJson = txLog.toJsonString();
-        state.update(txLogJson);
-        context.output(TodoJob.TAG_TX_LOG, txLogJson);
-        collector.collect(jsonString);
+
+        final var kind = action.getKind();
+        log.info("action kind: {}", kind);
+
+        switch (kind) {
+            case QUERY:
+                break;
+            case COMMAND:
+                txLog.update(action);
+
+                var txLogJson = txLog.toJsonString();
+
+                state.update(txLogJson);
+                context.output(TodoJob.TAG_TX_LOG, txLogJson);
+                break;
+        }
+        collector.collect(txLog.toJsonString());
     }
 }
