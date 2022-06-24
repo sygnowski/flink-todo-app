@@ -87,3 +87,14 @@ kafka-topics.sh --create \
 --config "min.cleanable.dirty.ratio=0.01"
 
 ```
+
+### Flink
+
+- Run todo job:
+  `flink run -d ./todo-app.jar --config /opt/flink/todo-app.yaml`
+
+- Run via docker-compose:
+  `docker-compose exec jobmanager flink run -d ./todo-app.jar --config /opt/flink/todo-app.yaml`
+
+- List Jobs
+  `docker-compose exec jobmanager flink list`
