@@ -3,6 +3,7 @@ package io.github.s7i.todo;
 import static java.util.Objects.nonNull;
 
 import io.github.s7i.todo.domain.Meta;
+import io.github.s7i.todo.domain.Prime;
 import io.github.s7i.todo.domain.TodoAction;
 import io.github.s7i.todo.domain.TxLog;
 import java.util.LinkedList;
@@ -64,6 +65,20 @@ public class TodoActionProcessor extends KeyedProcessFunction<String, String, St
                 final var timeout = Long.parseLong(opt.get().getValue());
                 log.info("going to sleep for {} ms", timeout);
                 TimeUnit.MILLISECONDS.sleep(timeout);
+            } catch (Exception e) {
+                log.error("sleep", e);
+            }
+        }
+
+        var prime = metaList.stream()
+              .filter(meta -> meta.getKey().equals("prime"))
+              .findFirst();
+
+        if (prime.isPresent()) {
+            try {
+                final var numOfP = Integer.parseInt(prime.get().getValue());
+                log.info("gen {} prime numbers", numOfP);
+                Prime.runStressPrime(numOfP);
             } catch (Exception e) {
                 log.error("sleep", e);
             }
