@@ -1,0 +1,29 @@
+kafka-io:
+  - name: action
+    type: source
+    topic: TodoAction
+    properties:
+
+      bootstrap.servers: kafka:9093
+      group.id: todo-action-paraller
+  - name: reaction
+    type: sink
+    topic: TodoReaction
+    semantic: AT_LEAST_ONCE
+    properties:
+      bootstrap.servers: kafka:9093
+  - name: txlog
+    type: sink
+    topic: TodoTxLog
+    semantic: AT_LEAST_ONCE
+    properties:
+      bootstrap.servers: kafka:9093
+checkpoints:
+  enabled: true
+  interval: 15000
+  mode: AT_LEAST_ONCE
+  #mode: EXACTLY_ONCE
+  timeout: 60000
+  pause: 1000
+  concurrent: 1
+  externalization: true
