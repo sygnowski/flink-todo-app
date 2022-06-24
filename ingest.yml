@@ -1,0 +1,26 @@
+version: 1.1
+kind: kafka-ingest
+kafka:
+  bootstrap.servers: localhost:9092
+ingest:
+  templates:
+    - name: todo.tpl
+      content: |+
+        {
+          "id": "${ID}",
+          "name": "P-1",
+          "meta": [{"key":"prime", "value": "5"}]
+        }
+  value_sets:
+    - name: set1
+      attributes:
+        - ID
+      values:
+        - ["${__UUID}"]
+      repeat: 10
+  topics:
+    - name: TodoAction
+      value_set: set1
+      entries:
+        - value_template:
+            name: todo.tpl
