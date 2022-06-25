@@ -1,54 +1,27 @@
 version: "3"
 services:
-  jobmanager:
+  flink:
     image: ${FLINK_IMAGE}
-    command: jobmanager
+    command: ha-cluster
     hostname: flinkjobmanger
     environment:
       - |
         FLINK_PROPERTIES=
         classloader.resolve-order: parent-first
-        jobmanager.rpc.address: flinkjobmanger
-        state.backend: rocksdb
-        state.checkpoints.dir: file:/opt/flink/data/todo-app/checkpointing
-        state.savepoints.dir: file:/opt/flink/data/todo-app/savepointing
-        state.backend.incremental: true
-        state.backend.rocksdb.timer-service.factory: ROCKSDB
-        state.backend.rocksdb.localdir: /opt/flink/data/todo-app/state-rocksdb
-        web.tmpdir: /opt/flink/submit-job
         rest.flamegraph.enabled: true
+      - _FLINK_RUN_JOB=/opt/flink/todo-app.jar --config /opt/flink/todo-app.yaml --scale 1
     ports:
       - "8181:8081"
     volumes:
-      - flink:/opt/flink/data
+      - todo-app:/usr/share/zookeeper
+      - todo-app:/usr/share/flink
       - ../target/todo-app.jar:/opt/flink/todo-app.jar
       - ./todo-app.yaml:/opt/flink/todo-app.yaml
     networks:
       - dev
-  taskmanager:
-    image: ${FLINK_IMAGE}
-    command: taskmanager
-    scale: 1
-    environment:
-      - |
-        FLINK_PROPERTIES=
-        classloader.resolve-order: parent-first
-        jobmanager.rpc.address: flinkjobmanger
-        state.backend: rocksdb
-        state.checkpoints.dir: file:/opt/flink/data/todo-app/checkpointing
-        state.savepoints.dir: file:/opt/flink/data/todo-app/savepointing
-        state.backend.incremental: true
-        state.backend.rocksdb.timer-service.factory: ROCKSDB
-        state.backend.rocksdb.localdir: /opt/flink/data/todo-app/state-rocksdb
-        rest.flamegraph.enabled: true
-    volumes:
-      - "flink:/opt/flink/data"
-    networks:
-      - dev
-
 volumes:
-  flink:
-    external: true
+  todo-app:
+    driver: local
 
 networks:
   dev:
