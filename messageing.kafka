@@ -1,0 +1,70 @@
+PRODUCER dev
+topic: TodoAction
+{
+    "add": "zadanie 1",
+    "id": "1",
+    "user" : {
+        "name" : "mario",
+        "pswdHash" : "123"
+    }
+}
+
+###
+
+PRODUCER dev
+topic: TodoAction-f12
+{
+    
+    "id":"7d3ba505-d583-4381-a396-ba8e9ed1363e",
+    "add": "zadanie 2 flink 12"    
+
+}
+
+###
+
+PRODUCER dev
+topic: TodoAction
+{
+    
+    "id":"7d3ba505-d583-4381-a396-ba8e9ed1363e",
+    "add": "zadanie 3 flink 14"    
+}
+
+###
+
+###
+PRODUCER dev
+topic: TodoAction
+{
+    "spy": {
+        "keyTodo" : "2"
+    }
+}
+
+###
+PRODUCER dev
+topic: TodoAction
+{
+    "spy": {
+        "keyUser" : "12312"
+    }
+}
+
+###
+CONSUMER dev
+topic: TodoReaction
+from: earliest
+
+###
+CONSUMER dev
+topic: TodoTxLog
+from: earliest
+
+###
+
+PRODUCER dev
+topic: TodoAction
+{
+    "name": "C",
+    "meta": [{"key":"xsleep", "value": "500"}]
+}
