@@ -1,5 +1,6 @@
 package io.github.s7i.todo.domain;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,8 @@ public class Todo {
 
     String id;
     List<String> items;
+
+    JsonNode context;
 
     public Todo(String key) {
         id = key;

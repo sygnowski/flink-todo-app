@@ -42,6 +42,8 @@ public class TodoActionProcessor extends KeyedProcessFunction<String, String, St
                 context.output(TodoJob.TAG_TX_LOG, txLogJson);
                 break;
         }
-        collector.collect(txLog.toJsonString());
+        var todo = txLog.getTodo();
+        todo.setContext(action.getContext());
+        collector.collect(todo.toJsonString());
     }
 }
