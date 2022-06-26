@@ -1,12 +1,61 @@
 # Flink's Todo Stream Application
 
-In general, this application was written for research purpose.
+## Motivation
+
+In general, this application was written for research and learing purposes.
 It's providing functionality that covers various aspects of working with the Flink, like: 
+ - Flink stream processing
  - Kafka messaging, semantic (exactly once, at most once)
  - Flink's state
  - Checkpointing
+ - State restoring
 
-## Config
+Current Flink version: `1.14.4`
+
+## Deployment
+In onder to run the application you need tho deploy the Kafka first. Broker should have listener setup at `kafka:9093`.
+
+Docker compose manifest under `flink-cluster` directory with more details.
+
+Used Custom Components:
+- Kafka Gateway [s7i/kafka-gateway](https://github.com/sygnowski/kafka-gateway)
+- Flink Standalone Cluster [s7i/flink](https://github.com/nefro85/dev-images/tree/main/flink)
+
+## API and domian operations
+
+Application interface:
+- Endoint: http://localhost:8180/
+- Web-Method: `POST`
+- Payload: `json`
+
+
+###
+### The Todo Actions 
+- Query for Todo List:
+   ```json
+   {"id": "{todo-list-id}"}
+   ```
+- Create a Todo List and Add first task:
+   ```json
+   {"add": "My Task #1"}
+   ```
+- Add next task to the list:
+   ```json
+   {"id": "{todo-list-id}","add": "My Task #2"}
+   ```
+- Remove task from the list:
+   ```json
+   {"id": "{todo-list-id}","remove": "My Task #1"}
+   ```
+
+
+## Application configuration
+
+The configuration could be provided via:
+- Environment variable `CONFIG`
+- Flink's job paramter `--config`
+
+
 
 ```yaml
 kafka-io:
@@ -37,31 +86,27 @@ checkpoints:
   externalization: true
 ```
 
-## Domain
-
-### The Todo Actions 
-1. Create a Todo List and Add first task:
-   ```json
-   {"add": "My Task #1"}
-   ```
-2. Add next task to list:
-   ```json
-   {"id": "{todo-list-id}","add": "My Task #2"}
-   ```
 
 ## Flink
+
+### API
+- Find a last complited checkpoint:
+  ```
+  curl http://localhost:8081/jobs/${JOB_ID}/checkpoints --silent | jq -r '.latest .completed .external_path'
+  ```
+
 ### Configuration
 
-Enabling RocksDB state
+- Enabling RocksDB state
 
-```properties
-state.backend: rocksdb
-state.checkpoints.dir: file:/opt/flink/appdata/checkpointing
-state.savepoints.dir: file:/opt/flink/appdata/savepointing
-state.backend.incremental: true
-state.backend.rocksdb.timer-service.factory: rocksdb
-state.backend.rocksdb.localdir: /opt/flink/appdata/state-rocksdb
-```
+  ```properties
+  state.backend: rocksdb
+  state.checkpoints.dir: file:/opt/flink/appdata/checkpointing
+  state.savepoints.dir: file:/opt/flink/appdata/savepointing
+  state.backend.incremental: true
+  state.backend.rocksdb.timer-service.factory: rocksdb
+  state.backend.rocksdb.localdir: /opt/flink/appdata/state-rocksdb
+  ```
 
 Flink CLI
 - run a application `flink run -d todo-app.jar`
