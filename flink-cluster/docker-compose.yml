@@ -1,5 +1,17 @@
 version: "3"
 services:
+  gateway:
+    image: s7i/kafka-gateway
+    environment:
+     - BROKER=kafka:9093
+     - PUBLISH_TOPIC=TodoAction
+     - SUBSCRIBE_TOPIC=TodoReaction
+     - SUBSCRIBE_GROUP_ID=todo-gateway
+     - TIMEOUT=60
+    ports:
+      - 8180:8080
+    networks:
+      - dev
   flink:
     image: ${FLINK_IMAGE}
     command: ha-cluster
