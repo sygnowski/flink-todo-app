@@ -13,7 +13,7 @@ It's providing functionality that covers various aspects of working with the Fli
 Current Flink version: `1.14.4`
 
 ## Deployment
-In onder to run the application you need tho deploy the Kafka first. Broker should have listener setup at `kafka:9093`.
+In order to run the application you need to deploy the Kafka first. Broker should have listener setup at `kafka:9093`.
 
 Docker compose manifest under `flink-cluster` directory with more details.
 
