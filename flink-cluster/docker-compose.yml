@@ -1,7 +1,7 @@
 version: "3"
 services:
   gateway:
-    image: s7i/kafka-gateway
+    image: ${GATEWAY_IMAGE}
     environment:
      - BROKER=kafka:9093
      - PUBLISH_TOPIC=TodoAction
