@@ -14,7 +14,7 @@ services:
       - dev
   flink:
     image: ${FLINK_IMAGE}
-    command: ha-cluster
+    command: cluster
     hostname: todo-app-flink
     environment:
       - |
@@ -31,7 +31,6 @@ services:
         sleep 15;
     ports:
       - 8181:8081
-      - 61208:61208
     volumes:
       - todo-app:/usr/share/zookeeper
       - todo-app:/usr/share/flink
@@ -39,11 +38,39 @@ services:
       - ./todo-app.yaml:/opt/flink/todo-app.yaml
     networks:
       - dev
+  kafka:
+    image: s7i/kafka
+    environment:
+      - SCRIPT=/opt/env-setup.sh > script.log;
+    ports:
+      - :61208
+      - :9092
+      - :2181
+    networks:
+     - dev
+    volumes:
+     - todo-app:/data
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ./env-setup.sh:/opt/env-setup.sh
+
+    restart: unless-stopped
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    ports:
+     - ":9000"
+    depends_on:
+     - kafka
+    networks:
+     - dev
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9093
+      JVM_OPTS: -Xms32M -Xmx64M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify
+      SERVER_SERVLET_CONTEXTPATH: /
 volumes:
   todo-app:
     driver: local
 
 networks:
   dev:
-    external:
-      name: ${TODO_APP_NETWORK:-todo-app}
+    name: ${TODO_APP_NETWORK:-todo-app}
