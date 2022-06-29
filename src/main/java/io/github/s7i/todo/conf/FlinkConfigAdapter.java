@@ -21,10 +21,10 @@ public interface FlinkConfigAdapter {
 
     default KafkaTopic lookup(String name, Type type) {
         return getKafkaTopicList().stream()
-                .filter(type::is)
-                .filter(s -> s.getName().equals(name))
-                .findFirst()
-                .orElseThrow();
+              .filter(type::is)
+              .filter(s -> s.getName().equals(name))
+              .findFirst()
+              .orElseThrow();
     }
 
     default KafkaSource<String> actionSource() {
@@ -33,10 +33,10 @@ public interface FlinkConfigAdapter {
         pros.putAll(src.getProperties());
 
         return KafkaSource.<String>builder()
-                .setProperties(pros)
-                .setTopics(src.getTopic())
-                .setValueOnlyDeserializer(new SimpleStringSchema())
-                .build();
+              .setProperties(pros)
+              .setTopics(src.getTopic())
+              .setValueOnlyDeserializer(new SimpleStringSchema())
+              .build();
     }
 
     default KafkaSink<String> sink() {
@@ -59,14 +59,15 @@ public interface FlinkConfigAdapter {
 
     private KafkaSink<String> buildSink(Properties props, String topic, String semantic) {
         return KafkaSink.<String>builder()
-                .setBootstrapServers(props.getProperty("bootstrap.servers"))
-                .setKafkaProducerConfig(props)
-                .setRecordSerializer(KafkaRecordSerializationSchema.<String>builder()
-                        .setTopic(topic)
-                        .setValueSerializationSchema(new SimpleStringSchema())
-                        .build())
-                .setDeliverGuarantee(DeliveryGuarantee.valueOf(semantic))
-                .build();
+              .setBootstrapServers(props.getProperty("bootstrap.servers"))
+              .setKafkaProducerConfig(props)
+              .setRecordSerializer(KafkaRecordSerializationSchema.<String>builder()
+                    .setTopic(topic)
+                    .setValueSerializationSchema(new SimpleStringSchema())
+                    .setKeySerializationSchema(new SimpleStringSchema())
+                    .build())
+              .setDeliverGuarantee(DeliveryGuarantee.valueOf(semantic))
+              .build();
     }
 
 }
