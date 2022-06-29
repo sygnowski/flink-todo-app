@@ -66,7 +66,7 @@ public class TodoJob {
                   .name("TxLog")
                   .uid("txlog-sink");
 
-            stream.sinkTo(sink())
+            stream.sinkTo(sinkOfReaction())
                   .name("Todo Reactions")
                   .uid("todo-sink");
 
