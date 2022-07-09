@@ -46,7 +46,7 @@ public class Configuration {
         Long timeout;
         Long pause;
         Integer concurrent;
-        boolean externalization;
+        String externalization;
     }
 
     @JsonProperty("kafka-io")

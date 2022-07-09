@@ -3,9 +3,8 @@ kafka-io:
     type: source
     topic: TodoAction
     properties:
-
       bootstrap.servers: kafka:9093
-      group.id: todo-action-paraller
+      group.id: todo-action
   - name: reaction
     type: sink
     topic: TodoReaction
@@ -26,4 +25,4 @@ checkpoints:
   timeout: 60000
   pause: 1000
   concurrent: 1
-  externalization: true
+  externalization: RETAIN_ON_CANCELLATION

@@ -25,90 +25,104 @@ import static java.util.Objects.requireNonNull;
 @Slf4j
 public class TodoJob {
 
-    public static final OutputTag<String> TAG_TX_LOG = new OutputTag<>("TXLOG", BasicTypeInfo.STRING_TYPE_INFO);
-    public static final String PARAM_CONFIG = "config";
-    public static final String ENV_CONFIG = "CONFIG";
+  public static final OutputTag<String> TAG_TX_LOG =
+      new OutputTag<>("TXLOG", BasicTypeInfo.STRING_TYPE_INFO);
+  public static final String PARAM_CONFIG = "config";
+  public static final String ENV_CONFIG = "CONFIG";
 
-    @RequiredArgsConstructor
-    public static class JobCreator implements FlinkConfigAdapter {
+  @RequiredArgsConstructor
+  public static class JobCreator implements FlinkConfigAdapter {
 
-        final StreamExecutionEnvironment env;
-        ParameterTool params;
-        Configuration cfg;
+    final StreamExecutionEnvironment env;
+    ParameterTool params;
+    Configuration cfg;
 
-        void create(String[] args) throws Exception {
-            params = ParameterTool.fromArgs(args);
-            cfg = getConfiguration();
-            requireNonNull(params);
-            requireNonNull(cfg);
-            requireNonNull(env);
-            buildStream();
-        }
-
-        @Override
-        public List<KafkaTopic> getKafkaTopicList() {
-            return cfg.getKafkaTopicList();
-        }
-
-        void buildStream() throws Exception {
-            var stream = env.fromSource(actionSource(), WatermarkStrategy.noWatermarks(), "Action Source")
-                  .filter(new TodoActionFilter())
-                  .uid("todo-src")
-                  .name("Todo Actions")
-                  .keyBy(new TodoKeySelector())
-                  .process(new TodoActionProcessor())
-                  .setParallelism(params.getInt("scale",2))
-                  .name("Todo Processor")
-                  .uid("todo-processor");
-
-            stream.getSideOutput(TAG_TX_LOG)
-                  .sinkTo(txLog())
-                  .name("TxLog")
-                  .uid("txlog-sink");
-
-            stream.sinkTo(sinkOfReaction())
-                  .name("Todo Reactions")
-                  .uid("todo-sink");
-
-            if (cfg.hasCheckpointing()) {
-                enableCheckpointing(cfg.getCheckpoints());
-            }
-            env.execute("ToDo App Job" + " (" + new GitProps() + ")");
-        }
-
-        Configuration getConfiguration() throws Exception {
-            Configuration cfg;
-            if (params.has(PARAM_CONFIG)) {
-                var config = params.get(PARAM_CONFIG);
-                log.info("Reading config form file: {}", config);
-                cfg = Configuration.from(Files.readString(Paths.get(config)));
-            } else if (nonNull(System.getenv(ENV_CONFIG))) {
-                log.info("Reading config form env");
-                cfg = Configuration.from(System.getenv(ENV_CONFIG));
-            } else {
-                log.info("Reading config resources");
-                cfg = Configuration.fromResources();
-            }
-            return cfg;
-        }
-
-        void enableCheckpointing(Checkpoints config) {
-            if (config.isEnabled()) {
-                var chk = env.getCheckpointConfig();
-                chk.setCheckpointingMode(CheckpointingMode.valueOf(config.getMode()));
-                chk.setCheckpointTimeout(config.getTimeout());
-                chk.setCheckpointInterval(config.getInterval());
-                chk.setMinPauseBetweenCheckpoints(config.getPause());
-                chk.setMaxConcurrentCheckpoints(config.getConcurrent());
-                if (config.isExternalization()) {
-                    chk.enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-                }
-            }
-        }
+    void create(String[] args) throws Exception {
+      params = ParameterTool.fromArgs(args);
+      cfg = getConfiguration();
+      requireNonNull(params);
+      requireNonNull(cfg);
+      requireNonNull(env);
+      buildStream();
     }
 
-    public static void main(String[] args) throws Exception {
-        var env = StreamExecutionEnvironment.getExecutionEnvironment();
-        new JobCreator(env).create(args);
+    @Override
+    public List<KafkaTopic> getKafkaTopicList() {
+      return cfg.getKafkaTopicList();
     }
+
+    void buildStream() throws Exception {
+      WatermarkStrategy<String> wms = WatermarkStrategy.forMonotonousTimestamps();
+
+      var srcStream = env.fromSource(actionSource(), wms, "Action Source").uid("todo-src");
+
+      if (params.has("src-scale")) {
+        srcStream.setParallelism(params.getInt("src-scale"));
+      }
+
+      var todoStream =
+          srcStream
+              .filter(new TodoActionFilter())
+              .uid("todo-act-flt")
+              .name("Todo Action Filter")
+              .keyBy(new TodoKeySelector())
+              .process(new TodoActionProcessor())
+              .name("Todo Processor")
+              .uid("todo-processor");
+
+      if (params.has("scale")) {
+        todoStream.setParallelism(params.getInt("scale"));
+      }
+
+      todoStream.getSideOutput(TAG_TX_LOG).sinkTo(txLog()).name("TxLog").uid("txlog-sink");
+
+      todoStream.sinkTo(sinkOfReaction()).name("Todo Reactions").uid("todo-sink");
+
+      if (cfg.hasCheckpointing()) {
+        enableCheckpointing(cfg.getCheckpoints());
+      }
+      env.getConfig().setGlobalJobParameters(params);
+      env.execute(jobName());
+    }
+
+    private String jobName() {
+      return String.format("Todo App (%s)", new GitProps());
+    }
+
+    Configuration getConfiguration() throws Exception {
+      Configuration cfg;
+      if (params.has(PARAM_CONFIG)) {
+        var config = params.get(PARAM_CONFIG);
+        log.info("Reading config form file: {}", config);
+        cfg = Configuration.from(Files.readString(Paths.get(config)));
+      } else if (nonNull(System.getenv(ENV_CONFIG))) {
+        log.info("Reading config form env");
+        cfg = Configuration.from(System.getenv(ENV_CONFIG));
+      } else {
+        log.info("Reading config resources");
+        cfg = Configuration.fromResources();
+      }
+      return cfg;
+    }
+
+    void enableCheckpointing(Checkpoints config) {
+      if (config.isEnabled()) {
+        var chk = env.getCheckpointConfig();
+        chk.setCheckpointingMode(CheckpointingMode.valueOf(config.getMode()));
+        chk.setCheckpointTimeout(config.getTimeout());
+        chk.setCheckpointInterval(config.getInterval());
+        chk.setMinPauseBetweenCheckpoints(config.getPause());
+        chk.setMaxConcurrentCheckpoints(config.getConcurrent());
+
+        var ecc = ExternalizedCheckpointCleanup.valueOf(config.getExternalization());
+
+        chk.setExternalizedCheckpointCleanup(ecc);
+      }
+    }
+  }
+
+  public static void main(String[] args) throws Exception {
+    var env = StreamExecutionEnvironment.getExecutionEnvironment();
+    new JobCreator(env).create(args);
+  }
 }
