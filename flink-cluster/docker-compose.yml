@@ -9,7 +9,9 @@ services:
      - SUBSCRIBE_GROUP_ID=todo-gateway
      - TIMEOUT=60
     ports:
-      - 8180:8080
+      - ${PORT_GATEWAY_API}:8080
+    depends_on:
+     - kafka
     networks:
       - dev
   flink:
@@ -20,22 +22,27 @@ services:
       - |
         FLINK_PROPERTIES=
         classloader.resolve-order: parent-first
+        taskmanager.numberOfTaskSlots: 5
+        parallelism.default: 2
         rest.flamegraph.enabled: true
         env.java.opts.jobmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
         env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
-      - _FLINK_RUN_JOB=./todo-app.jar --config /opt/flink/todo-app.yaml --scale 1
+      - FLINK_RUN_JOB=./todo-app.jar --config ./todo-app.yaml
       - |
         SCRIPT=
         ls -la;
         flink list;
         sleep 15;
     ports:
-      - 8181:8081
+      - ${PORT_FLINK_UI}:8081
+      - ${PORT_DEBUG_TM}:5006
     volumes:
       - todo-app:/usr/share/zookeeper
       - todo-app:/usr/share/flink
       - ../target/todo-app.jar:/opt/flink/todo-app.jar
       - ./todo-app.yaml:/opt/flink/todo-app.yaml
+    depends_on:
+     - kafka
     networks:
       - dev
   kafka:
@@ -43,9 +50,9 @@ services:
     environment:
       - SCRIPT=/opt/env-setup.sh > script.log;
     ports:
-      - :61208
-      - :9092
-      - :2181
+      - ${PORT_RANGE}:61208
+      - ${PORT_RANGE}:9092
+      - ${PORT_RANGE}:2181
     networks:
      - dev
     volumes:
@@ -58,7 +65,7 @@ services:
   kafdrop:
     image: obsidiandynamics/kafdrop
     ports:
-     - ":9000"
+     - ${PORT_KAFDROP}:9000
     depends_on:
      - kafka
     networks:
