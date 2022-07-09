@@ -11,24 +11,23 @@
 
     <properties>
         <java.version>11</java.version>
-        <scala.version>2.12</scala.version>
-        <flink.version>1.14.4</flink.version>
+        <flink.version>1.15.0</flink.version>
         <jackson.version>2.13.3</jackson.version>
         <lombok.version>1.18.24</lombok.version>
-        <groovy.version>3.0.10</groovy.version>
+        <groovy.version>3.0.11</groovy.version>
         <jar.name>todo-app</jar.name>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_${scala.version}</artifactId>
+            <artifactId>flink-streaming-java</artifactId>
             <version>${flink.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-kafka_${scala.version}</artifactId>
+            <artifactId>flink-connector-kafka</artifactId>
             <version>${flink.version}</version>
         </dependency>
         <dependency>
@@ -51,7 +50,7 @@
         <!-- FLINK-->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-test-utils_${scala.version}</artifactId>
+            <artifactId>flink-test-utils</artifactId>
             <version>${flink.version}</version>
             <scope>test</scope>
         </dependency>
@@ -63,7 +62,7 @@
 <!--        </dependency>-->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_${scala.version}</artifactId>
+            <artifactId>flink-streaming-java</artifactId>
             <version>${flink.version}</version>
             <scope>test</scope>
             <classifier>tests</classifier>
@@ -89,7 +88,7 @@
         <dependency> <!-- enables mocking of classes (in addition to interfaces) -->
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
-            <version>1.12.8</version>
+            <version>1.12.10</version>
             <scope>test</scope>
         </dependency>
         <dependency> <!-- enables mocking of classes without default constructor (together with ByteBuddy or CGLIB) -->
