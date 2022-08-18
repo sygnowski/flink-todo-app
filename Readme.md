@@ -10,7 +10,7 @@ It's providing functionality that covers various aspects of working with the Fli
  - Checkpointing
  - State restoring
 
-Current Flink version: `1.14.4`
+Current Flink version: `1.15.1`
 
 ## Deployment
 In order to run the application you need to deploy the Kafka first. Broker should have listener setup at `kafka:9093`.
