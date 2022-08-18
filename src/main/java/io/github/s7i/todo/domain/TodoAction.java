@@ -3,12 +3,16 @@ package io.github.s7i.todo.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Optional;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 
 import static java.util.Objects.nonNull;
 
 @Data
+@NoArgsConstructor
 public class TodoAction {
 
   @SneakyThrows
@@ -16,9 +20,15 @@ public class TodoAction {
     return new ObjectMapper().readValue(string, TodoAction.class);
   }
 
-  String id;
-  String add;
-  String remove;
+    String id;
+    String name;
+    String add;
+    String remove;
+    List<Meta> meta;
+
+    public Optional<List<Meta>> getMeta() {
+        return Optional.ofNullable(meta);
+    }
 
   JsonNode context;
 
@@ -30,8 +40,10 @@ public class TodoAction {
     return nonNull(remove);
   }
 
-  @JsonIgnore
-  public Kind getKind() {
-    return hasAdd() || hasRemove() ? Kind.COMMAND : Kind.QUERY;
-  }
+    public Kind getKind() {
+        return hasAdd() || hasRemove()
+              ? Kind.COMMAND
+              : Kind.QUERY;
+    }
+
 }

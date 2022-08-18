@@ -29,8 +29,10 @@ public class TxLog {
     return new ObjectMapper().readValue(string, TxLog.class);
   }
 
+  String name;
   Todo todo;
   List<Change> changeList;
+  List<Meta> meta;
 
   public TxLog(String key) {
     todo = new Todo(key);
