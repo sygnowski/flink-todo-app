@@ -27,6 +27,14 @@ services:
         rest.flamegraph.enabled: true
         env.java.opts.jobmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
         env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
+        state.savepoints.dir: s3://flink-s3/savepoints/
+        state.checkpoints.dir: s3://flink-s3/checkpoints/
+        high-availability.storageDir: s3://flink-s3/ha/
+        s3.path.style.access: true
+        s3.endpoint: http://minio:9000
+        s3.access-key: flink
+        s3.secret-key: flink9999
+      - ENABLE_BUILT_IN_PLUGINS=flink-s3-fs-presto-1.15.0.jar
       - FLINK_RUN_JOB=./todo-app.jar --config ./todo-app.yaml
       - |
         SCRIPT=
@@ -80,4 +88,5 @@ volumes:
 
 networks:
   dev:
+    external: true
     name: ${TODO_APP_NETWORK:-todo-app}
