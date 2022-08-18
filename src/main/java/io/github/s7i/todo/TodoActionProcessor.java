@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
@@ -19,6 +20,7 @@ import org.apache.flink.util.Collector;
 public class TodoActionProcessor extends KeyedProcessFunction<String, String, String> {
 
     public static final ValueStateDescriptor<String> TODO_STATE = new ValueStateDescriptor<>("todo", BasicTypeInfo.STRING_TYPE_INFO);
+    public static final ValueStateDescriptor<String> LOAD_STATE = new ValueStateDescriptor<>("big_load", BasicTypeInfo.STRING_TYPE_INFO);
 
     @Override
     public void processElement(String value, Context context, Collector<String> collector) throws Exception {
@@ -77,6 +79,21 @@ public class TodoActionProcessor extends KeyedProcessFunction<String, String, St
                 Prime.runStressPrime(numOfP);
             } catch (Exception e) {
                 log.error("sleep", e);
+            }
+        }
+
+        var load = metaList.stream().filter(meta -> meta.getKey().equals("load")).findFirst();
+        if (load.isPresent()) {
+            try {
+                var loadValue = Integer.parseInt(load.get().getValue());
+                int size = loadValue * 1024 * 1024;
+                log.info("gen load of {} characters", size);
+
+                var data = RandomStringUtils.randomAlphanumeric(size);
+                getRuntimeContext().getState(LOAD_STATE).update(data);
+
+            } catch (Exception e) {
+                log.error("load", e);
             }
         }
 
