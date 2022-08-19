@@ -6,6 +6,7 @@ import io.github.s7i.todo.domain.Meta;
 import io.github.s7i.todo.domain.Prime;
 import io.github.s7i.todo.domain.TodoAction;
 import io.github.s7i.todo.domain.TxLog;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +16,7 @@ import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
+import org.apache.flink.util.FlinkRuntimeException;
 
 @Slf4j
 public class TodoActionProcessor extends KeyedProcessFunction<String, String, String> {
@@ -96,6 +98,23 @@ public class TodoActionProcessor extends KeyedProcessFunction<String, String, St
                 log.error("load", e);
             }
         }
+        metaList.stream().filter(meta -> meta.getKey().equals("crash")).findFirst().ifPresent(meta -> {
+            FlinkRuntimeException toThrow = null;
+            try {
+                var crashTo = Instant.parse(meta.getValue());
+
+                if (Instant.now().isBefore(crashTo)) {
+                    toThrow = new FlinkRuntimeException("Execute order / crash till: " + meta.getValue());
+                } else {
+                    log.info("crash is out of date");
+                }
+            } catch (Exception e) {
+                log.error("crash", e);
+            }
+            if (nonNull(toThrow)) {
+                throw toThrow;
+            }
+        });
 
         metaList.add(Meta.builder().key("operator.name").value(getRuntimeContext().getTaskName()).build());
         metaList.add(Meta.builder().key("operator.nameWithSubtasks").value(getRuntimeContext().getTaskNameWithSubtasks()).build());
