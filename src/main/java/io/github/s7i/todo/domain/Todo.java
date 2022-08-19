@@ -21,6 +21,7 @@ public class Todo {
     List<String> items;
 
     JsonNode context;
+    List<Meta> meta;
 
     public Todo(String key) {
         id = key;

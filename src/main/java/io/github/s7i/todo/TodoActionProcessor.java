@@ -100,8 +100,11 @@ public class TodoActionProcessor extends KeyedProcessFunction<String, String, St
         metaList.add(Meta.builder().key("operator.name").value(getRuntimeContext().getTaskName()).build());
         metaList.add(Meta.builder().key("operator.nameWithSubtasks").value(getRuntimeContext().getTaskNameWithSubtasks()).build());
 
-        txLog.setMeta(metaList);
+        var todo = txLog.getTodo();
 
-        collector.collect(txLog.toJsonString());
+        todo.setContext(action.getContext());
+        todo.setMeta(metaList);
+
+        collector.collect(todo.toJsonString());
     }
 }
