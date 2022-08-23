@@ -27,6 +27,8 @@ services:
         rest.flamegraph.enabled: true
         env.java.opts.jobmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
         env.java.opts.taskmanager: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006"
+        state.backend.local-recovery: true
+        taskmanager.state.local.root-dirs: /usr/share/flink/tm/local-recovery
         state.savepoints.dir: s3://flink-s3/savepoints/
         state.checkpoints.dir: s3://flink-s3/checkpoints/
         high-availability.storageDir: s3://flink-s3/ha/
