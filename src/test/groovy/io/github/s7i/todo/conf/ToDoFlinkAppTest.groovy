@@ -1,6 +1,8 @@
 package io.github.s7i.todo.conf
 
 import io.github.s7i.todo.TodoJob
+import io.github.s7i.todo.domain.Todo
+import io.github.s7i.todo.domain.TxLog
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 import org.apache.flink.api.connector.sink2.Sink
 import org.apache.flink.api.connector.sink2.SinkWriter
@@ -16,6 +18,8 @@ import spock.lang.Specification
 class ToDoFlinkAppTest extends Specification {
 
     static sinks = [:]
+    public static final String TX_LOG = "txLog"
+    public static final String REACTION = "reaction"
     @ClassRule
     @Shared
     MiniClusterWithClientResource flinkCluster = new MiniClusterWithClientResource(
@@ -26,7 +30,12 @@ class ToDoFlinkAppTest extends Specification {
 
     class TestConfigAdapter implements FlinkConfigAdapter {
 
-        def actions = [actionAdd01]
+        def actions
+
+        TestConfigAdapter(actions) {
+            this.actions = actions
+        }
+
         @Override
         List<KafkaTopic> getKafkaTopicList() {
             return Configuration.fromResources().getKafkaTopicList()
@@ -39,20 +48,21 @@ class ToDoFlinkAppTest extends Specification {
 
         @Override
         Sink<String> txLog() {
-            new Sink2("txLog")
+            new Sink2(ToDoFlinkAppTest.TX_LOG)
         }
 
         @Override
         Sink<String> sinkOfReaction() {
-            new Sink2("reaction")
+            new Sink2(ToDoFlinkAppTest.REACTION)
         }
     }
 
-    class Sink2 implements SinkWriter<String>, Sink<String>{
+    static class Sink2 implements SinkWriter<String>, Sink<String> {
         String sinkName
 
         Sink2(name) {
             this.sinkName = name
+            sinks[sinkName] = []
         }
 
         @Override
@@ -78,19 +88,58 @@ class ToDoFlinkAppTest extends Specification {
 
     //language=json
     String actionAdd01 = '''
-        {"id": "test-list","add": "My Task #1"}
+        {
+          "id": "test-list",
+          "add": "My Task #1",
+          "context": {
+            "correlation": "1"
+          }
+        }
+'''
+    //language=json
+    String actionAdd02 = '''
+        {
+          "id": "test-list",
+          "add": "My Task #2",
+          "context": {
+            "correlation": "1"
+          }
+        }
+'''
+    //language=json
+    String actionAdd03 = '''
+        {
+          "id": "test-list",
+          "add": "My Task #3",
+          "context": {
+            "correlation": "1"
+          }
+        }
 '''
 
-    def "stream test"() {
+    def "Todo List with 3 entries"() {
 
         given:
-        def fca = new TestConfigAdapter()
-        def args = new String[0]
+        def fca = new TestConfigAdapter([
+                actionAdd01,
+                actionAdd02,
+                actionAdd03
+        ])
+        def args = new String[]{"--test", "true"}
         def env = TestStreamEnvironment.getExecutionEnvironment()
         new TodoJob.JobCreator(env).configAdapter(fca).create(args)
 
         expect:
-        env
+        def txs = sinks[TX_LOG] as List
+        def reactions = sinks[REACTION] as List
 
+        reactions.size() == 3
+        txs.size() == 3
+
+        TxLog.from(txs.last()).getTodo().getItems().containsAll(["My Task #1", "My Task #2", "My Task #3"])
+        Todo.from(reactions.last()).getItems().containsAll(["My Task #1", "My Task #2", "My Task #3"])
+
+
+        println(sinks)
     }
 }
