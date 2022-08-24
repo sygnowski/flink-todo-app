@@ -14,7 +14,7 @@
         <flink.version>1.15.1</flink.version>
         <jackson.version>2.13.3</jackson.version>
         <lombok.version>1.18.24</lombok.version>
-        <groovy.version>3.0.11</groovy.version>
+        <groovy.version>3.0.12</groovy.version>
         <jar.name>todo-app</jar.name>
     </properties>
 
@@ -54,12 +54,6 @@
             <version>${flink.version}</version>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.apache.flink</groupId>-->
-<!--            <artifactId>flink-runtime_2.11</artifactId>-->
-<!--            <version>${flink.version}</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java</artifactId>
