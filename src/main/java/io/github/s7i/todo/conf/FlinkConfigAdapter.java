@@ -1,14 +1,19 @@
 package io.github.s7i.todo.conf;
 
 import io.github.s7i.todo.conf.KafkaTopic.Type;
-import java.util.List;
-import java.util.Properties;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import java.util.List;
+import java.util.Properties;
 
 public interface FlinkConfigAdapter {
 
@@ -40,15 +45,19 @@ public interface FlinkConfigAdapter {
               .build();
     }
 
-    default KafkaSink<String> sinkOfReaction() {
+    default SingleOutputStreamOperator<String> buildSourceStream(StreamExecutionEnvironment env, WatermarkStrategy<String> wms, String sourceName) {
+        return env.fromSource(actionSource(), wms, "Action Source");
+    }
+
+    default Sink<String> sinkOfReaction() {
         return sink(REACTION, null);
     }
 
-    default KafkaSink<String> txLog() {
+    default Sink<String> txLog() {
         return sink(TX_LOG, new TxLogKeySerializer());
     }
 
-    default KafkaSink<String> sink(String name, SerializationSchema<String> keySchema) {
+    default Sink<String> sink(String name, SerializationSchema<String> keySchema) {
         var sink = lookup(name, Type.SINK);
         var props = new Properties();
         props.putAll(sink.getProperties());

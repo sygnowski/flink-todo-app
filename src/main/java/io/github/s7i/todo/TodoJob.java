@@ -4,8 +4,9 @@ import io.github.s7i.todo.conf.Configuration;
 import io.github.s7i.todo.conf.Configuration.Checkpoints;
 import io.github.s7i.todo.conf.FlinkConfigAdapter;
 import io.github.s7i.todo.conf.GitProps;
-import io.github.s7i.todo.conf.KafkaTopic;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
@@ -17,7 +18,6 @@ import org.apache.flink.util.OutputTag;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -31,13 +31,16 @@ public class TodoJob {
   public static final String ENV_CONFIG = "CONFIG";
 
   @RequiredArgsConstructor
-  public static class JobCreator implements FlinkConfigAdapter {
+  @Accessors(fluent = true)
+  public static class JobCreator {
 
     final StreamExecutionEnvironment env;
     ParameterTool params;
     Configuration cfg;
+    @Setter
+    FlinkConfigAdapter configAdapter = () -> cfg.getKafkaTopicList();
 
-    void create(String[] args) throws Exception {
+    public void create(String[] args) throws Exception {
       params = ParameterTool.fromArgs(args);
       cfg = getConfiguration();
       requireNonNull(params);
@@ -46,15 +49,11 @@ public class TodoJob {
       buildStream();
     }
 
-    @Override
-    public List<KafkaTopic> getKafkaTopicList() {
-      return cfg.getKafkaTopicList();
-    }
-
     void buildStream() throws Exception {
       WatermarkStrategy<String> wms = WatermarkStrategy.forMonotonousTimestamps();
 
-      var srcStream = env.fromSource(actionSource(), wms, "Action Source").uid("todo-src");
+      var srcStream = configAdapter.buildSourceStream(env, wms, "Action Source")
+              .uid("todo-src");
 
       if (params.has("src-scale")) {
         srcStream.setParallelism(params.getInt("src-scale"));
@@ -74,9 +73,9 @@ public class TodoJob {
         todoStream.setParallelism(params.getInt("scale"));
       }
 
-      todoStream.getSideOutput(TAG_TX_LOG).sinkTo(txLog()).name("TxLog").uid("txlog-sink");
+      todoStream.getSideOutput(TAG_TX_LOG).sinkTo(configAdapter.txLog()).name("TxLog").uid("txlog-sink");
 
-      todoStream.sinkTo(sinkOfReaction()).name("Todo Reactions").uid("todo-sink");
+      todoStream.sinkTo(configAdapter.sinkOfReaction()).name("Todo Reactions").uid("todo-sink");
 
       if (cfg.hasCheckpointing()) {
         enableCheckpointing(cfg.getCheckpoints());
