@@ -5,6 +5,8 @@ kafka-io:
     properties:
       bootstrap.servers: localhost:9092
       group.id: todo-action
+      enable.auto.commit: true
+      auto.commit.interval.ms: 5000
   - name: reaction
     type: sink
     topic: TodoReaction
