@@ -2,7 +2,7 @@
 set -ex
 
 KAFKA=kafka:9093
-RETENTION=60000
+RETENTION=360000
 
 create_topic() {
     local TOPIC_NAME=$1
@@ -32,5 +32,6 @@ create_topic_compact() {
 }
 
 create_topic TodoAction
+create_topic TodoAdmin
 create_topic TodoReaction
 create_topic_compact TodoTxLog

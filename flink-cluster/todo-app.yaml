@@ -5,6 +5,12 @@ kafka-io:
     properties:
       bootstrap.servers: kafka:9093
       group.id: todo-action
+  - name: admin
+    type: source
+    topic: TodoAdmin
+    properties:
+      bootstrap.servers: kafka:9093
+      group.id: todo-action-admin
   - name: reaction
     type: sink
     topic: TodoReaction

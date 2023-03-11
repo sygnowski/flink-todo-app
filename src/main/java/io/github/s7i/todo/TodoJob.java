@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -29,6 +30,7 @@ public class TodoJob {
       new OutputTag<>("TXLOG", BasicTypeInfo.STRING_TYPE_INFO);
   public static final String PARAM_CONFIG = "config";
   public static final String ENV_CONFIG = "CONFIG";
+  public static final MapStateDescriptor<String, String> ADMIN_STREAM_DESCRIPTOR = new MapStateDescriptor<>("admin-broadcast", BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO);
 
   @RequiredArgsConstructor
   @Accessors(fluent = true)
@@ -59,11 +61,20 @@ public class TodoJob {
         srcStream.setParallelism(params.getInt("src-scale"));
       }
 
+      var adminsrc = configAdapter.source("admin");
+      var adminStream = env.fromSource(adminsrc, wms, "Admin Source")
+              .broadcast(ADMIN_STREAM_DESCRIPTOR);
+
       var todoStream =
           srcStream
               .filter(new TodoActionFilter())
               .uid("todo-act-flt")
               .name("Todo Action Filter")
+              .keyBy(new TodoKeySelector())
+              .connect(adminStream)
+              .process(new Buffer())
+              .name("Buffer")
+              .uid("buffer")
               .keyBy(new TodoKeySelector())
               .process(new TodoActionProcessor())
               .name("Todo Processor")

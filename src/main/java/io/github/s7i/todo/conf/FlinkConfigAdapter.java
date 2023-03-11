@@ -45,6 +45,18 @@ public interface FlinkConfigAdapter {
               .build();
     }
 
+    default KafkaSource<String> source(String name) {
+        var src = lookup(name, Type.SOURCE);
+        var pros = new Properties();
+        pros.putAll(src.getProperties());
+
+        return KafkaSource.<String>builder()
+                .setProperties(pros)
+                .setTopics(src.getTopic())
+                .setValueOnlyDeserializer(new SimpleStringSchema())
+                .build();
+    }
+
     default SingleOutputStreamOperator<String> buildSourceStream(StreamExecutionEnvironment env, WatermarkStrategy<String> wms, String sourceName) {
         return env.fromSource(actionSource(), wms, "Action Source");
     }
