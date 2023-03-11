@@ -22,4 +22,4 @@ checkpoints:
   timeout: 900000
   pause: 1000
   concurrent: 1
-  externalization: true
+  externalization: RETAIN_ON_CANCELLATION

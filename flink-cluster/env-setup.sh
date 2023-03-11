@@ -1,7 +1,7 @@
 #!/bin/bash -e
 set -ex
 
-KAFKA=kafka:9093
+KAFKA=localhost:9092
 RETENTION=60000
 
 create_topic() {
