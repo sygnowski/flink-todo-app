@@ -5,6 +5,8 @@ kafka-io:
     properties:
       bootstrap.servers: localhost:9092
       group.id: todo-action
+      enable.auto.commit: true
+      auto.commit.interval.ms: 5000
   - name: reaction
     type: sink
     topic: TodoReaction
@@ -12,11 +14,11 @@ kafka-io:
       bootstrap.servers: localhost:9092
   - name: txlog
     type: sink
-    topic: ActionTxLog
+    topic: TodoTxLog
     properties:
       bootstrap.servers: localhost:9092
 checkpoints:
-  enabled: true
+  enabled: false
   interval: 10000
   mode: AT_LEAST_ONCE
   timeout: 900000
