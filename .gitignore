@@ -1,3 +1,5 @@
 .idea/
 target/
 todo-flink.iml
+*/*.pid
+*/*.log
