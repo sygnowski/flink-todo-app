@@ -21,10 +21,10 @@ Used Custom Components:
 - Kafka Gateway [s7i/kafka-gateway](https://github.com/sygnowski/kafka-gateway)
 - Flink Standalone Cluster [s7i/flink](https://github.com/nefro85/dev-images/tree/main/flink)
 
-## API and domian operations
+## API and domain operations
 
 Application interface:
-- Endoint: http://localhost:8180/
+- Endpoint: http://localhost:8180/
 - Web-Method: `POST`
 - Payload: `json`
 
@@ -53,7 +53,7 @@ Application interface:
 
 The configuration could be provided via:
 - Environment variable `CONFIG`
-- Flink's job paramter `--config`
+- Flink's job parameter `--config`
 
 
 
