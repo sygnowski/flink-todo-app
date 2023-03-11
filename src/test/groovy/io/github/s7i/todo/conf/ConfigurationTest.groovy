@@ -11,4 +11,13 @@ class ConfigurationTest extends Specification {
         cfg.getKafkaTopicList().size() > 0
 
     }
+
+    def 'source not found'() {
+        given:
+        FlinkConfigAdapter adapter = { Configuration.fromResources().getKafkaTopicList() }
+        when:
+        adapter.source("not-existing")
+        then:
+        thrown(NoSuchElementException.class)
+    }
 }

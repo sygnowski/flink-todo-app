@@ -13,12 +13,16 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Properties;
+
+import static java.util.Objects.requireNonNull;
 
 public interface FlinkConfigAdapter {
 
     String AT_LEAST_ONCE = "AT_LEAST_ONCE";
     String ACTION = "action";
+    String ADMIN = "admin";
     String REACTION = "reaction";
     String TX_LOG = "txlog";
     String BOOTSTRAP_SERVERS = "bootstrap.servers";
@@ -30,21 +34,8 @@ public interface FlinkConfigAdapter {
               .filter(type::is)
               .filter(s -> s.getName().equals(name))
               .findFirst()
-              .orElseThrow();
+              .orElseThrow(() -> new NoSuchElementException(String.format("missing configuration for: %s, type: %s", name, type)));
     }
-
-    default KafkaSource<String> actionSource() {
-        var src = lookup(ACTION, Type.SOURCE);
-        var pros = new Properties();
-        pros.putAll(src.getProperties());
-
-        return KafkaSource.<String>builder()
-              .setProperties(pros)
-              .setTopics(src.getTopic())
-              .setValueOnlyDeserializer(new SimpleStringSchema())
-              .build();
-    }
-
     default KafkaSource<String> source(String name) {
         var src = lookup(name, Type.SOURCE);
         var pros = new Properties();
@@ -58,7 +49,11 @@ public interface FlinkConfigAdapter {
     }
 
     default SingleOutputStreamOperator<String> buildSourceStream(StreamExecutionEnvironment env, WatermarkStrategy<String> wms, String sourceName) {
-        return env.fromSource(actionSource(), wms, "Action Source");
+        return env.fromSource(
+                source(requireNonNull(sourceName, "missing source name")),
+                requireNonNull(wms, "watermark strategy"),
+                String.format("Source[%s]", sourceName)
+        );
     }
 
     default Sink<String> sinkOfReaction() {

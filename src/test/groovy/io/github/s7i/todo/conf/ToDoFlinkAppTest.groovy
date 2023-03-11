@@ -30,10 +30,10 @@ class ToDoFlinkAppTest extends Specification {
 
     class TestConfigAdapter implements FlinkConfigAdapter {
 
-        def actions
+        def sources = ["action": [], "admin": [""]]
 
         TestConfigAdapter(actions) {
-            this.actions = actions
+            sources["action"] = actions
         }
 
         @Override
@@ -43,7 +43,7 @@ class ToDoFlinkAppTest extends Specification {
 
         @Override
         SingleOutputStreamOperator<String> buildSourceStream(StreamExecutionEnvironment env, WatermarkStrategy<String> wms, String sourceName) {
-            return env.fromCollection(actions)
+            return env.fromCollection(sources[sourceName])
         }
 
         @Override

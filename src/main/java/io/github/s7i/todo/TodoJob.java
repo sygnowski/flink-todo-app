@@ -54,15 +54,15 @@ public class TodoJob {
     void buildStream() throws Exception {
       WatermarkStrategy<String> wms = WatermarkStrategy.forMonotonousTimestamps();
 
-      var srcStream = configAdapter.buildSourceStream(env, wms, "Action Source")
+      var srcStream = configAdapter.buildSourceStream(env, wms, FlinkConfigAdapter.ACTION)
               .uid("todo-src");
 
       if (params.has("src-scale")) {
         srcStream.setParallelism(params.getInt("src-scale"));
       }
 
-      var adminsrc = configAdapter.source("admin");
-      var adminStream = env.fromSource(adminsrc, wms, "Admin Source")
+      var adminStream = configAdapter.buildSourceStream(env, wms, FlinkConfigAdapter.ADMIN)
+              .uid("admin-src")
               .broadcast(ADMIN_STREAM_DESCRIPTOR);
 
       var todoStream =
