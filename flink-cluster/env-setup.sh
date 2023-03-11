@@ -2,7 +2,7 @@
 set -ex
 
 KAFKA=${1:-"kafka:9093"}
-RETENTION=360000
+RETENTION=$((15 * 60 * 1000))
 
 create_topic() {
     local TOPIC_NAME=$1
