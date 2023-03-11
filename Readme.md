@@ -2,7 +2,7 @@
 
 ## Motivation
 
-In general, this application was written for research and learing purposes.
+In general, this application was written for research and learning purposes.
 It's providing functionality that covers various aspects of working with the Flink, like: 
  - Flink stream processing
  - Kafka messaging, semantic (exactly once, at most once)
@@ -10,7 +10,7 @@ It's providing functionality that covers various aspects of working with the Fli
  - Checkpointing
  - State restoring
 
-Current Flink version: `1.15.1`
+Current Flink version: `1.15.2`
 
 ## Deployment
 In order to run the application you need to deploy the Kafka first. Broker should have listener setup at `kafka:9093`.
@@ -76,21 +76,13 @@ kafka-io:
     semantic: EXACTLY_ONCE
     properties:
       bootstrap.servers: localhost:9092
-checkpoints:
-  enabled: true
-  interval: 10000
-  mode: AT_LEAST_ONCE
-  timeout: 900000
-  pause: 1000
-  concurrent: 1
-  externalization: true
 ```
 
 
 ## Flink
 
 ### API
-- Find a last complited checkpoint:
+- Find a last completed checkpoint:
   ```
   curl http://localhost:8081/jobs/${JOB_ID}/checkpoints --silent | jq -r '.latest .completed .external_path'
   ```
