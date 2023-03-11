@@ -6,6 +6,24 @@ APP_DIR=~/codebase/flink-doto-app
 GW_BIN=~/codebase/kafka-gateway/kafka-gateway
 
 
+function usage() {
+    (lolcat || cat) << EOF 2> /dev/null
+
+====================================================================
+Usage:
+gw    - start gateway
+gws   - stop gateway
+job   - run flink job
+setup - initialize (crate Kafka topics, make job jar file)
+clean - cleanup (delete Kafka topics)
+====================================================================
+Current configuration:
+APP_DIR ${APP_DIR}
+KAFKA_BROKER ${KAFKA_BROKER}
+EOF
+}
+
+
 function run_gateway() {
     export BROKER=$1
     export PUBLISH_TOPIC=TodoAction
@@ -21,10 +39,15 @@ function run_gateway() {
 function run_setup() {
     ${APP_DIR}/flink-cluster/env-setup.sh ${KAFKA_BROKER}
     mvn package -f ${APP_DIR}/pom.xml -DskipTests=true
-  }
+}
 
 function run_flink_job() {
-    flink run -d ${APP_DIR}/target/todo-app.jar --config ${APP_DIR}/lo-run/cfg.yml 2> /dev/null
+    local RUN_OPT="-d"
+    if [[ -n "${SP}" ]]; then
+      echo "Using savepoint: ${SP}"
+      RUN_OPT="${RUN_OPT} --fromSavepoint ${SP} -n"
+    fi
+    flink run ${RUN_OPT} ${APP_DIR}/target/todo-app.jar --config ${APP_DIR}/lo-run/cfg.yml 2> /dev/null
 }
 
 function run_stop_gateway() {
@@ -42,24 +65,28 @@ function run_clean() {
     done
 }
 
-function usage() {
-    (lolcat || cat) << EOF 2> /dev/null
+function run_info() {
+    local args=("$@")
 
-====================================================================
-Usage:
-gw    - start gateway
-gws   - stop gateway
-job   - run flink job
-setup - initialize (crate Kafka topics, make job jar file)
-clean - cleanup (delete Kafka topics)
-====================================================================
-Current configuration:
-APP_DIR ${APP_DIR}
-KAFKA_BROKER ${KAFKA_BROKER}
-JOB_CONFIG
-$(cat ${APP_DIR}/lo-run/cfg.yml)
-EOF
+    if [[ " ${args[*]} " =~ " job " ]]; then
+      echo "JOB_CONFIG"
+      cat ${APP_DIR}/lo-run/cfg.yml
+
+      flink info ${APP_DIR}/target/todo-app.jar --config ${APP_DIR}/lo-run/cfg.yml 2>/dev/null
+    fi
+
+    echo "Kafka Consumer Groups..."    
+    for name in $(kafka-consumer-groups.sh --bootstrap-server ${KAFKA_BROKER} --list); do
+      kafka-consumer-groups.sh --bootstrap-server ${KAFKA_BROKER} --group $name --describe
+    done
 }
+
+function run_admin() {
+    echo "Add to broadcast Admin option: $1"
+    echo $1 | kafka-console-producer.sh --topic TodoAdmin --bootstrap-server ${KAFKA_BROKER} --sync
+}
+
+args=("$@")
 
 case $1 in
     gw)
@@ -69,13 +96,19 @@ case $1 in
         run_stop_gateway
         ;;
     job)
-        run_flink_job
+        run_flink_job "${args[@]:1}"
         ;;
     setup)
         run_setup
         ;;
     clean)
         run_clean
+        ;;
+    info)
+        run_info "${args[@]:1}"
+        ;;
+    admin)
+        run_admin "${args[@]:1}"
         ;;
     *)
     usage
