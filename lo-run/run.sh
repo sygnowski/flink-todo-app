@@ -1,3 +1,4 @@
+#!/bin/bash
 #set -ex
 
 KAFKA_BROKER="localhost:9092"
