@@ -11,14 +11,27 @@
 
     <properties>
         <java.version>11</java.version>
-        <flink.version>1.15.2</flink.version>
+        <flink.version>1.18.0</flink.version>
+        <flink.kafkaconnector.version>3.0.1-1.18</flink.kafkaconnector.version>
         <jackson.version>2.13.3</jackson.version>
         <lombok.version>1.18.24</lombok.version>
         <groovy.version>3.0.11</groovy.version>
+        <slf4j.version>2.0.5</slf4j.version>
+        <logback.version>1.4.7</logback.version>
         <jar.name>todo-app</jar.name>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-java</artifactId>
@@ -28,7 +41,7 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka</artifactId>
-            <version>${flink.version}</version>
+            <version>${flink.kafkaconnector.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

@@ -3,26 +3,26 @@ kafka-io:
     type: source
     topic: TodoAction
     properties:
-      bootstrap.servers: kafka:9093
+      bootstrap.servers: kafka:9092
       group.id: todo-action
   - name: admin
     type: source
     topic: TodoAdmin
     properties:
-      bootstrap.servers: kafka:9093
+      bootstrap.servers: kafka:9092
       group.id: todo-action-admin
   - name: reaction
     type: sink
     topic: TodoReaction
     semantic: AT_LEAST_ONCE
     properties:
-      bootstrap.servers: kafka:9093
+      bootstrap.servers: kafka:9092
   - name: txlog
     type: sink
     topic: TodoTxLog
     semantic: AT_LEAST_ONCE
     properties:
-      bootstrap.servers: kafka:9093
+      bootstrap.servers: kafka:9092
 checkpoints:
   enabled: true
   interval: 15000

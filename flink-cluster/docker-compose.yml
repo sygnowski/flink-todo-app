@@ -3,7 +3,7 @@ services:
   gateway:
     image: ${GATEWAY_IMAGE}
     environment:
-     - BROKER=kafka:9093
+     - BROKER=kafka:9092
      - PUBLISH_TOPIC=TodoAction
      - SUBSCRIBE_TOPIC=TodoReaction
      - SUBSCRIBE_GROUP_ID=todo-gateway
@@ -47,12 +47,13 @@ services:
       - dev
   kafka:
     image: s7i/kafka
+    command: kraft
     environment:
       - SCRIPT=/opt/env-setup.sh > script.log;
     ports:
       - ${PORT_RANGE}:61208
       - ${PORT_RANGE}:9092
-      - ${PORT_RANGE}:2181
+      - ${PORT_RANGE}:7000
     networks:
      - dev
     volumes:
@@ -62,18 +63,18 @@ services:
 
     restart: unless-stopped
 
-  kafdrop:
-    image: obsidiandynamics/kafdrop
+  kowl:
+    image: docker.redpanda.com/redpandadata/console:latest
+    environment:
+     - KAFKA_BROKERS=kafka:9092
     ports:
-     - ${PORT_KAFDROP}:9000
-    depends_on:
-     - kafka
+     - ${PORT_RANGE}:8080
     networks:
      - dev
-    environment:
-      KAFKA_BROKERCONNECT: kafka:9093
-      JVM_OPTS: -Xms32M -Xmx64M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify
-      SERVER_SERVLET_CONTEXTPATH: /
+    depends_on:
+     - kafka
+    restart: unless-stopped
+
 volumes:
   todo-app:
     driver: local
